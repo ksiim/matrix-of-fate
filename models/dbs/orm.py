@@ -3,10 +3,21 @@ import asyncio
 from models.databases import Session
 from models.dbs.models import *
 
-from sqlalchemy import insert, inspect, or_, select, text
+from sqlalchemy import insert, inspect, or_, select, text, update
 
 
 class Orm:
+    
+    @staticmethod
+    async def update_birth_date(telegram_id, date):
+        async with Session() as session:
+            query = (
+                update(User)
+                .where(User.telegram_id == telegram_id)
+                .values(birth_date=date)
+            )
+            await session.execute(query)
+            await session.commit()
     
     @classmethod
     async def create_user(cls, message):
