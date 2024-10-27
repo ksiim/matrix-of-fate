@@ -28,6 +28,8 @@ class Orm:
                 username=message.from_user.username
             )
             await cls.save_user(user)
+            return True
+        return False
     
     @staticmethod
     async def save_user(user):

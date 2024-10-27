@@ -1,3 +1,4 @@
+from ast import parse
 import asyncio
 from hashlib import new
 from operator import call
@@ -25,8 +26,15 @@ from datetime import datetime, timedelta
 async def start_message_handler(message: Message, state: FSMContext):
     await state.clear()
     
-    await Orm.create_user(message)
-    await send_start_message(message)
+    if await Orm.get_user_by_telegram_id(message.from_user.id):
+        return await send_start_message(message)
+    
+    msg = message.text[7:]
+    print(msg)
+    if msg == 'paid':
+        await Orm.create_user(message)
+        await send_start_message(message)
+        
     
 async def send_start_message(message: Message):
     await bot.send_message(
@@ -44,9 +52,6 @@ async def send_start_message(message: Message):
     
 @dp.callback_query(F.data == 'birth_date')
 async def birth_date_callback_handler(callback: CallbackQuery, state: FSMContext):
-    user = await Orm.get_user_by_telegram_id(callback.from_user.id)
-    if user.birth_date:
-        return await calculate_callback(callback, state)
     await bot.send_message(
         chat_id=callback.from_user.id,
         text=birth_date_text
@@ -112,11 +117,17 @@ async def calculate_callback(callback: CallbackQuery, state: FSMContext):
     print(l)
     
     await answer.delete()
-    
+    captions = await generate_calculating_completed_text(a, b, c, d, e, f, g, h, i ,j)
     await callback.message.answer_photo(
         photo="AgACAgIAAxkBAAIwBmcagDpmmqQOplEymerlcrAOucY8AAKO3jEbWVbRSBQo17LpCH_zAQADAgADeQADNgQ",
-        caption=calculating_completed_text,
-        reply_markup=await generate_letter_keyboard('e', e)
+        caption=captions[0],
+        reply_markup=await generate_letter_keyboard('e', e),
+        parse_mode="markdown"
+    )
+    
+    await callback.message.answer(
+        text=captions[1],
+        parse_mode="markdown"
     )
     
     await state.update_data(
@@ -183,7 +194,7 @@ async def calculate_year_date():
     year = await sum_digits_until_22(year_sum)
     month = await sum_digits_until_22(12 + year)
     day = await sum_digits_until_22(await days_in_current_year(now))
-    return day, month, now.year
+    return 14, 21, 2025
 
 async def days_in_current_year(now):
     return 366 if calendar.isleap(now.year) else 365
