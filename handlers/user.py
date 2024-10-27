@@ -121,12 +121,12 @@ async def calculate_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer_photo(
         photo="AgACAgIAAxkBAAIwBmcagDpmmqQOplEymerlcrAOucY8AAKO3jEbWVbRSBQo17LpCH_zAQADAgADeQADNgQ",
         caption=captions[0],
-        reply_markup=await generate_letter_keyboard('e', e),
         parse_mode="markdown"
     )
     
     await callback.message.answer(
         text=captions[1],
+        reply_markup=await generate_letter_keyboard('e', e),
         parse_mode="markdown"
     )
     
@@ -149,7 +149,8 @@ async def letter_callback(callback: CallbackQuery, state: FSMContext):
     new_letter_number = await get_index_of_value_in_list(list_of_letter, letter) + 1
     if new_letter_number == 10:
         return await callback.message.answer(
-            text=text
+            text=text,
+            reply_markup=restart_markup
         )
     await asyncio.sleep(3)
     await callback.message.answer(
